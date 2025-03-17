@@ -6,6 +6,17 @@
 #include "PaperCharacter.h"
 #include "GD_2D_prj1Character.generated.h"
 
+UENUM(BlueprintType)
+enum class ECharacterState : uint8
+{
+	Idle       UMETA(DisplayName = "Idle"),
+	Running    UMETA(DisplayName = "Running"),
+	Jumping    UMETA(DisplayName = "Jumping"),
+	Falling    UMETA(DisplayName = "Falling"),
+	Dead       UMETA(DisplayName = "Dead")
+
+};
+
 class UTextRenderComponent;
 
 /**
@@ -16,13 +27,13 @@ class UTextRenderComponent;
  * The CharacterMovementComponent (inherited from ACharacter) handles movement of the collision capsule
  * The Sprite component (inherited from APaperCharacter) handles the visuals
  */
-UCLASS(config=Game)
+UCLASS(config = Game)
 class AGD_2D_prj1Character : public APaperCharacter
 {
 	GENERATED_BODY()
 
 	/** Side view camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera, meta=(AllowPrivateAccess="true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* SideViewCameraComponent;
 
 	/** Camera boom positioning the camera beside the character */
@@ -31,25 +42,30 @@ class AGD_2D_prj1Character : public APaperCharacter
 
 	UTextRenderComponent* TextComponent;
 	virtual void Tick(float DeltaSeconds) override;
+
+
+
 protected:
 	// The animation to play while running around
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Animations)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 	class UPaperFlipbook* RunningAnimation;
 
 	// The animation to play while idle (standing still)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
 	class UPaperFlipbook* IdleAnimation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Stamina;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+	class UPaperFlipbook* FallingAnimation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	//Code for controlling the stamina of the player.
-	int MaxStamina = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animations)
+	class UPaperFlipbook* JumpingAnimation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	ECharacterState CharacterState;
 
 
 	/** Called to choose the correct animation to play based on the character's movement state */
-	void UpdateAnimation();
+	void UpdateAnimation(UPaperFlipbook* animation);
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
@@ -66,6 +82,10 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End of APawn interface
 
+	void UpdateState();
+
+	void HandleState();
+
 public:
 	AGD_2D_prj1Character();
 
@@ -73,4 +93,7 @@ public:
 	FORCEINLINE class UCameraComponent* GetSideViewCameraComponent() const { return SideViewCameraComponent; }
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	int Health = 100;
 };
